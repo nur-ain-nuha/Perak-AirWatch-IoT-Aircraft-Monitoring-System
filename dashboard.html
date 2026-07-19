@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perak AirWatch | IoT Flight Monitoring System</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Socket.io -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    
+    <!-- Google Fonts - Poppins for modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Animate.css for animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="gradient-sphere"></div>
+        <div class="gradient-sphere-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- Floating Aircraft Animation -->
+    <div class="floating-aircraft">
+        <i class="fas fa-plane"></i>
+    </div>
+    <div class="floating-aircraft-2">
+        <i class="fas fa-plane"></i>
+    </div>
+
+    <div class="container animate__animated animate__fadeIn">
+        <!-- Header with Glassmorphism -->
+        <header class="glass-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-radar"></i>
+                    </div>
+                    <div class="title-section">
+                        <h1>
+                            <span class="gradient-text">Perak AirWatch</span>
+                        </h1>
+                        <div class="subtitle">Real-time Aircraft Monitoring System</div>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="live-indicator">
+                        <span class="pulse-dot"></span>
+                        <span class="live-text">LIVE</span>
+                    </div>
+                    <div class="datetime glass" id="currentDateTime"></div>
+                </div>
+            </div>
+            
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-item">
+                    <i class="fas fa-satellite-dish"></i>
+                    <span>OpenSky Network</span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-map-pin"></i>
+                    <span>Perak Region</span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-sync-alt fa-spin"></i>
+                    <span>Real-time Updates</span>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Statistics Cards with 3D Effect -->
+        <div class="stats-grid">
+            <div class="stat-card glass-card" id="stat-total">
+                <div class="stat-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Total Flights</h3>
+                    <div class="stat-value-wrapper">
+                        <span class="stat-value" id="totalFlights">0</span>
+                        <span class="stat-trend positive">
+                            <i class="fas fa-arrow-up"></i> +12%
+                        </span>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="progress-bar" style="width: 75%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card glass-card" id="stat-active">
+                <div class="stat-icon">
+                    <i class="fas fa-radar"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Active Now</h3>
+                    <div class="stat-value-wrapper">
+                        <span class="stat-value" id="activeFlights">0</span>
+                        <span class="stat-badge live-badge">
+                            <span class="pulse-dot-small"></span> LIVE
+                        </span>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="progress-bar" style="width: 45%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card glass-card" id="stat-altitude">
+                <div class="stat-icon">
+                    <i class="fas fa-mountain"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Avg Altitude</h3>
+                    <div class="stat-value-wrapper">
+                        <span class="stat-value" id="avgAltitude">0</span>
+                        <span class="stat-unit">m</span>
+                    </div>
+                    <div class="stat-trend-indicator">
+                        <i class="fas fa-minus-circle" style="color: #10b981;"></i> Cruising
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card glass-card" id="stat-max">
+                <div class="stat-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Max Altitude</h3>
+                    <div class="stat-value-wrapper">
+                        <span class="stat-value" id="maxAltitude">0</span>
+                        <span class="stat-unit">m</span>
+                    </div>
+                    <div class="stat-record">
+                        <i class="fas fa-crown" style="color: #fbbf24;"></i> Record High
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card glass-card" id="stat-airports">
+                <div class="stat-icon">
+                    <i class="fas fa-map-pin"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Airports Found</h3>
+                    <div class="stat-value-wrapper">
+                        <span class="stat-value" id="airportsDetected">0</span>
+                        <span class="stat-badge bonus-badge">
+                            <i class="fas fa-star"></i> BONUS
+                        </span>
+                    </div>
+                    <div class="stat-discovery">
+                        <i class="fas fa-location-dot"></i> GPS Inferred
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card glass-card" id="stat-days">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Collection Period</h3>
+                    <div class="stat-value-wrapper">
+                        <span class="stat-value" id="collectionDays">0</span>
+                        <span class="stat-unit">days</span>
+                    </div>
+                    <div class="stat-target">
+                        <i class="fas fa-flag-checkered"></i> 3 Day Goal
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Map with Enhanced Controls -->
+        <div class="map-wrapper glass-card">
+            <div class="map-header">
+                <div class="map-title">
+                    <i class="fas fa-globe-asia"></i>
+                    <h2>Live Flight Radar - Perak Airspace</h2>
+                </div>
+                <div class="map-controls">
+                    <button class="map-btn" onclick="centerMap()" title="Center on Perak">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                    <button class="map-btn" onclick="toggleHeatmap()" title="Toggle Heatmap">
+                        <i class="fas fa-fire"></i>
+                    </button>
+                    <button class="map-btn" onclick="refreshMap()" title="Refresh">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="map"></div>
+            <div class="map-legend">
+                <div class="legend-item">
+                    <span class="legend-dot" style="background: #28a745;"></span>
+                    <span>Low Altitude (&lt;2000m)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot" style="background: #fd7e14;"></span>
+                    <span>Medium Altitude (2000-5000m)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot" style="background: #dc3545;"></span>
+                    <span>High Altitude (&gt;5000m)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot" style="background: #dc3545; border: 3px solid white;"></span>
+                    <span>Detected Airport</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Section with Modern Design -->
+        <div class="charts-grid">
+            <div class="chart-card glass-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Real-time Altitude Monitor</h3>
+                    </div>
+                    <div class="chart-badge">
+                        <span class="badge-update">Live</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="altitudeChart"></canvas>
+                </div>
+                <div class="chart-footer">
+                    <span><i class="fas fa-info-circle"></i> Current flights over Perak</span>
+                </div>
+            </div>
+            
+            <div class="chart-card glass-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-bar"></i>
+                        <h3>24-Hour Traffic Pattern</h3>
+                    </div>
+                    <div class="chart-badge">
+                        <span class="badge-historical">Historical</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+                <div class="chart-footer">
+                    <span><i class="fas fa-clock"></i> Updated hourly</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Section with Lists -->
+        <div class="bottom-grid">
+            <!-- Live Flights List with Animation -->
+            <div class="list-card glass-card">
+                <div class="list-header">
+                    <div class="list-title">
+                        <i class="fas fa-plane-departure"></i>
+                        <h3>Live Flights Over Perak</h3>
+                    </div>
+                    <div class="list-count" id="flightCount">0</div>
+                </div>
+                <div class="list-content" id="flightsList">
+                    <div class="loading-state">
+                        <div class="loader"></div>
+                        <p>Scanning Perak airspace...</p>
+                    </div>
+                </div>
+                <div class="list-footer">
+                    <marquee behavior="scroll" direction="left" scrollamount="3">
+                        <i class="fas fa-broadcast-tower"></i> Data updates every 30 seconds • Tracking all aircraft in real-time
+                    </marquee>
+                </div>
+            </div>
+            
+            <!-- Detected Airports with Achievement Style -->
+            <div class="list-card glass-card">
+                <div class="list-header">
+                    <div class="list-title">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <h3>GPS-Inferred Airports</h3>
+                    </div>
+                    <div class="list-badge">
+                        <i class="fas fa-gem"></i> Bonus Feature
+                    </div>
+                </div>
+                <div class="list-content" id="airportsList">
+                    <div class="loading-state">
+                        <div class="pulse-circles">
+                            <div class="circle"></div>
+                            <div class="circle"></div>
+                            <div class="circle"></div>
+                        </div>
+                        <p>Analyzing ground patterns...</p>
+                    </div>
+                </div>
+                <div class="list-footer">
+                    <div class="progress-indicator">
+                        <span>Airport detection accuracy: </span>
+                        <div class="progress-bar-small">
+                            <div class="progress-fill" style="width: 85%"></div>
+                        </div>
+                        <span>85%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer with Project Info -->
+        <footer class="glass-footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <i class="fas fa-microchip"></i>
+                    <span>TFB2093 Internet of Things Project</span>
+                </div>
+                <div class="footer-center">
+                    <span class="data-source">
+                        <i class="fas fa-cloud"></i> OpenSky Network
+                    </span>
+                    <span class="separator">|</span>
+                    <span class="duration">
+                        <i class="fas fa-hourglass-half"></i> 3-Day Continuous Monitoring
+                    </span>
+                </div>
+                <div class="footer-right">
+                    <span class="version">v2.0</span>
+                    <span class="copyright">© 2026 Perak AirWatch</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Toast Notification System -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
